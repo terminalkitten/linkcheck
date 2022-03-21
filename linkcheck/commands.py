@@ -1,3 +1,4 @@
+import asyncio
 from pathlib import Path
 from typing import Any, List, Optional, Union
 
@@ -6,7 +7,7 @@ import toml
 from pydantic import BaseModel
 from pyfiglet import Figlet
 
-from linkcheck.django import login
+from linkcheck.django import run_link_checker
 
 font = Figlet(font="slant")
 
@@ -22,20 +23,30 @@ class CommandLineArgs(BaseModel):
 class ConfigFile(BaseModel):
     mode: Optional[str]
     login_url_path: Optional[str] = "login"
+    config: str = "linkcheck.toml"
+    hostname: Optional[str]
+    user: str
 
 
-def load_settings(file_path: str) -> Union[Any, ConfigFile]:
+def load_settings(file_path: str) -> Union[Any, dict[str, Any]]:
     path = Path(file_path)
     if path.is_file():
         with open("linkcheck.toml", "r") as config_file:
-            return ConfigFile(**toml.loads(config_file.read()))
+            return toml.loads(config_file.read())
 
 
 class LinkCheck:
     def __init__(self, **kwargs):
-        self.__version__ = "0.3.2"
+        # Get commandline arguments
         self.args = CommandLineArgs(**kwargs)
-        self.config = load_settings(self.args.config)
+        # Get toml file settings
+        self.toml_config = load_settings(self.args.config)
+        # Merge commandline args with presedent over toml file args, except if there None
+        filtered_args = {k: v for k, v in self.args.dict().items() if v is not None}
+        self.config = ConfigFile(**{**self.toml_config, **filtered_args})
+
+    def run(self) -> None:
+        asyncio.run(run_link_checker(self.config))
 
     def show_version(self) -> None:
         click.secho("LinkCheck CLI tools")

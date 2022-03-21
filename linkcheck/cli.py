@@ -7,8 +7,14 @@ from linkcheck.commands import LinkCheck, pass_linkcheck
 @click.option("--config", default="linkcheck.toml", help="select config file")
 @click.pass_context
 def cli(ctx, **kwargs):
-    """linkcheck command line tool"""
+    """Django linkcheck command line tool"""
     ctx.obj = LinkCheck(**kwargs)
+
+
+@cli.command("run", short_help="run linkcheck in visit-mode")
+@pass_linkcheck
+def run(linkcheck):
+    linkcheck.run()
 
 
 @cli.command("version", short_help="show linkcheck version")

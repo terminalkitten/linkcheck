@@ -5,14 +5,12 @@ from wasabi import Printer
 msg = Printer()
 
 # Async login for Django projects
-async def login(username, password, settings):
+async def login(username, password, config):
 
     msg.divider(f"Start login for {username}")
 
     async with httpx.AsyncClient() as client:
-        login_response = await client.get(
-            f"{settings.hostname}/{settings.login_url_path}/"
-        )
+        login_response = await client.get(f"{config.hostname}/{config.login_url_path}/")
         csrftoken = login_response.cookies["csrftoken"]
 
     transport = httpx.AsyncHTTPTransport(retries=1)
@@ -21,16 +19,16 @@ async def login(username, password, settings):
     ) as client:
         try:
             auth_response = await client.post(
-                f"{settings.hostname}/{settings.login_url_path}/?",
+                f"{config.hostname}/{config.login_url_path}/?",
                 data={
                     "username": username,
                     "password": password,
                     "csrfmiddlewaretoken": csrftoken,
                 },
                 headers={
-                    "Host": f"{settings.hostname}",
-                    "Origin": f"{settings.hostname}",
-                    "Referer": f"{settings.hostname}/{settings.login_url_path}/",
+                    "Host": f"{config.hostname}",
+                    "Origin": f"{config.hostname}",
+                    "Referer": f"{config.hostname}/{config.login_url_path}/",
                     "X-CSRFToken": csrftoken,
                 },
             )
@@ -39,3 +37,8 @@ async def login(username, password, settings):
 
         except Exception as e:
             debug(e)
+
+
+async def run_link_checker(config):
+    username, password = config.user.split(":")
+    cookies = await login(username, password, config)
