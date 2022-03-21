@@ -16,7 +16,7 @@ from linkcheck import __version__ as VERSION
 class CommandLineArgs(BaseModel):
     mode: Optional[str]
     hostname: Optional[str]
-    config: Optional[str]
+    config: str = "linkcheck.toml"
 
 
 class ConfigFile(BaseModel):
