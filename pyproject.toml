@@ -20,6 +20,10 @@ dependencies = [
     "typing-extensions",
     "pydantic",
     "click",
+    "httpx",
+    "devtools",
+    "pyfiglet",
+    "wasabi"
 ]
 
 [project.optional-dependencies]
@@ -34,8 +38,7 @@ dev = [
 doc = ["Sphinx", "sphinx-rtd-theme", "livereload"]
 
 [project.scripts]
-linkcheck = "linkcheck.cli:main"
-
+linkcheck = "linkcheck.cli:cli"
 
 [project.urls]
 Home = "https://github.com/terminalkitten/linkcheck"

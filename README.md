@@ -17,3 +17,7 @@ pip install 'linkcheck'
 ## Documentation
 
 Our documentation is on [Read the docs](https://linkcheck.readthedocs.io/en/latest/linkcheck/getting_started/index.html).
+
+## License
+
+The MIT License
