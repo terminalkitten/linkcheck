@@ -1,0 +1,56 @@
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[distutils]
+index-servers = ["pypi"]
+
+[pypi]
+repository = "https://upload.pypi.org/legacy/"
+username = "terminalkitten"
+
+[project]
+name = "linkcheck"
+authors = [{name = "TK", email = "tk@terminalkitten.com"}]
+readme = "README.md"
+license = {file = "LICENSE"}
+classifiers = ["License :: OSI Approved :: MIT License"]
+dynamic = ["version", "description"]
+dependencies = [
+    "typing-extensions",
+    "pydantic",
+    "click",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black",
+    "ipdb",
+    "ipython",
+    "flake8",
+    "isort",
+    "wheel",
+]
+doc = ["Sphinx", "sphinx-rtd-theme", "livereload"]
+
+[project.scripts]
+linkcheck = "linkcheck.cli:main"
+
+
+[project.urls]
+Home = "https://github.com/terminalkitten/linkcheck"
+
+[tool.black]
+line-length = 88
+target-version = ['py37', 'py38', 'py39']
+
+[tool.isort]
+profile = "black"
+line_length = 88
+
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+markers = [
+    "integration",
+]
