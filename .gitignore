@@ -17,6 +17,8 @@ prof/
 .env/
 .venv/
 
-
 linkcheck.egg-info/
+
+# Local files
+linkcheck.toml
 
