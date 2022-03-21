@@ -11,10 +11,16 @@ def cli(ctx, **kwargs):
     ctx.obj = LinkCheck(**kwargs)
 
 
-@cli.command("run", short_help="run linkcheck in visit-mode")
+@cli.command("visit", short_help="run linkcheck in visit-mode")
 @pass_linkcheck
-def run(linkcheck):
-    linkcheck.run()
+def visit(linkcheck):
+    linkcheck.visit()
+
+
+@cli.command("browser", short_help="run linkcheck in browser-mode")
+@pass_linkcheck
+def browser(linkcheck):
+    linkcheck.browser()
 
 
 @cli.command("version", short_help="show linkcheck version")

@@ -21,9 +21,11 @@ dependencies = [
     "pydantic",
     "click",
     "httpx",
+    "playwright",
     "devtools",
     "pyfiglet",
-    "wasabi"
+    "wasabi",
+    "beautifulsoup4"
 ]
 
 [project.optional-dependencies]
