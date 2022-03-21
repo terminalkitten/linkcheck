@@ -1,7 +1,6 @@
 import httpx
-from wasabi import Printer
-
 from devtools import debug
+from wasabi import Printer
 
 msg = Printer()
 
@@ -14,7 +13,7 @@ async def login(username, password, settings):
         login_response = await client.get(
             f"{settings.hostname}/{settings.login_url_path}/"
         )
-        csrftoken = login_response.cookies['csrftoken']
+        csrftoken = login_response.cookies["csrftoken"]
 
     transport = httpx.AsyncHTTPTransport(retries=1)
     async with httpx.AsyncClient(
@@ -24,15 +23,15 @@ async def login(username, password, settings):
             auth_response = await client.post(
                 f"{settings.hostname}/{settings.login_url_path}/?",
                 data={
-                    'username': username,
-                    'password': password,
-                    'csrfmiddlewaretoken': csrftoken,
+                    "username": username,
+                    "password": password,
+                    "csrfmiddlewaretoken": csrftoken,
                 },
                 headers={
-                    'Host': f"{settings.hostname}",
-                    'Origin': f"{settings.hostname}",
-                    'Referer': f"{settings.hostname}/{settings.login_url_path}/",
-                    'X-CSRFToken': csrftoken,
+                    "Host": f"{settings.hostname}",
+                    "Origin": f"{settings.hostname}",
+                    "Referer": f"{settings.hostname}/{settings.login_url_path}/",
+                    "X-CSRFToken": csrftoken,
                 },
             )
             msg.good(f"Success: got a cookie for {username}")
