@@ -90,7 +90,7 @@ async def visit_link(url, cookies, config) -> None:
                     headers={"User-Agent": f"Django LinkCheck / {VERSION}"},
                 )
 
-                if response.status_code == httpx.codes.OK:
+                if not httpx.codes.is_error(response.status_code):
 
                     href_tags = await extract_href(response.text)
                     href_tags = [
@@ -103,7 +103,7 @@ async def visit_link(url, cookies, config) -> None:
                     URL_CACHE.update(href_tags)
 
                     for link in new_urls:
-                        status.text = f"[scrape] {link}"
+                        status.text = link
                         await visit_link(link, cookies, config)
 
         except Exception as e:
@@ -118,20 +118,22 @@ async def get_hrefs(page):
 
 async def browse_link(url, page, config) -> None:
     BROWSER_URL_CACHE.add(url)
+    with yaspin(Spinners.arc, text=url) as status:
+        try:
+            response = await page.goto(url)
+            await page.wait_for_load_state("networkidle")
 
-    try:
-        await page.goto(url)
-        await page.wait_for_load_state("networkidle")
+            if response.ok:
+                hrefs_on_page = await get_hrefs(page)
+                if hrefs_on_page:
+                    new_urls = set(hrefs_on_page).difference(BROWSER_URL_CACHE)
+                    BROWSER_URL_CACHE.update(hrefs_on_page)
+                    for link in new_urls:
+                        status.text = link
+                        await browse_link(link, page, config)
 
-        hrefs_on_page = await get_hrefs(page)
-        if hrefs_on_page:
-            new_urls = set(hrefs_on_page).difference(BROWSER_URL_CACHE)
-            BROWSER_URL_CACHE.update(hrefs_on_page)
-            for link in new_urls:
-                await browse_link(link, page, config)
-
-    except Exception as e:
-        debug(e)
+        except Exception as e:
+            debug(e)
 
 
 async def link_checker_visit(config):
