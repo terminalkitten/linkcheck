@@ -1,10 +1,9 @@
 from contextlib import contextmanager
-from typing import Optional, Any
-import asyncio
-from bs4.element import ResultSet
+from typing import Optional, List
 
 import httpx
-from bs4 import BeautifulSoup
+from selectolax.parser import HTMLParser
+
 from devtools import debug
 from httpx import Cookies
 from playwright.async_api import async_playwright
@@ -63,17 +62,23 @@ async def login(username, password, config) -> Optional[Cookies]:
             debug(e)
 
 
-async def extract_href(text) -> ResultSet[Any]:
-    soup = BeautifulSoup(text, features="html.parser")
-    return soup.find_all(href=True)
+async def extract_href(text) -> List[str]:
+
+    links: List[str] = []
+    tags: List[str] = ['a', 'div', 'link', 'span', 'button', 'svg']
+
+    tree = HTMLParser(text)
+
+    for html_tag in tags:
+        for tag in tree.tags(html_tag):
+            attrs = tag.attributes
+            if 'href' in attrs:
+                if attrs['href']:
+                    links.append(attrs['href'])
+    return links
 
 
 async def visit_link(url, cookies, config) -> None:
-    await asyncio.sleep(0.9)
-
-    if url in URL_CACHE:
-        return None
-
     URL_CACHE.add(url)
     with yaspin(Spinners.arc, text=url) as status:
         try:
@@ -84,12 +89,22 @@ async def visit_link(url, cookies, config) -> None:
                     url,
                     headers={"User-Agent": f"Django LinkCheck / {VERSION}"},
                 )
-                href_tags = await extract_href(response.text)
-                for href in href_tags:
-                    if href["href"].startswith("/"):
-                        url_from_href = config.hostname + href["href"]
-                        status.text = f"[scrape] {url_from_href}"
-                        await visit_link(url_from_href, cookies, config)
+
+                if response.status_code == httpx.codes.OK:
+
+                    href_tags = await extract_href(response.text)
+                    href_tags = [
+                        config.hostname + href
+                        for href in href_tags
+                        if href.startswith("/")
+                    ]
+
+                    new_urls = set(href_tags).difference(URL_CACHE)
+                    URL_CACHE.update(href_tags)
+
+                    for link in new_urls:
+                        status.text = f"[scrape] {link}"
+                        await visit_link(link, cookies, config)
 
         except Exception as e:
             debug(e)

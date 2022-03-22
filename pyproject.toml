@@ -25,7 +25,7 @@ dependencies = [
     "devtools",
     "pyfiglet",
     "wasabi",
-    "beautifulsoup4",
+    "selectolax",
     "yaspin"
 ]
 
