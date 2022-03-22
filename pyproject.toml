@@ -25,7 +25,8 @@ dependencies = [
     "devtools",
     "pyfiglet",
     "wasabi",
-    "beautifulsoup4"
+    "beautifulsoup4",
+    "yaspin"
 ]
 
 [project.optional-dependencies]

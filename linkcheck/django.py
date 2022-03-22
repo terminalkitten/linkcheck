@@ -1,5 +1,7 @@
 from contextlib import contextmanager
-from typing import Optional
+from typing import Optional, Any
+import asyncio
+from bs4.element import ResultSet
 
 import httpx
 from bs4 import BeautifulSoup
@@ -7,6 +9,9 @@ from devtools import debug
 from httpx import Cookies
 from playwright.async_api import async_playwright
 from wasabi import Printer
+
+from yaspin import yaspin
+from yaspin.spinners import Spinners
 
 from linkcheck import __version__ as VERSION
 
@@ -25,9 +30,6 @@ def config_users(config):
 
 # Async login for Django projects
 async def login(username, password, config) -> Optional[Cookies]:
-
-    msg.divider(f"[{config.hostname}] Start login for {username}")
-
     async with httpx.AsyncClient() as client:
         login_response = await client.get(f"{config.hostname}/{config.login_url_path}/")
         csrftoken = login_response.cookies["csrftoken"]
@@ -61,28 +63,36 @@ async def login(username, password, config) -> Optional[Cookies]:
             debug(e)
 
 
+async def extract_href(text) -> ResultSet[Any]:
+    soup = BeautifulSoup(text, features="html.parser")
+    return soup.find_all(href=True)
+
+
 async def visit_link(url, cookies, config) -> None:
+    await asyncio.sleep(0.9)
 
     if url in URL_CACHE:
         return None
 
-    msg.info(f"Visit url: {url}")
     URL_CACHE.add(url)
+    with yaspin(Spinners.arc, text=url) as status:
+        try:
+            async with httpx.AsyncClient(
+                cookies=cookies, follow_redirects=True
+            ) as client:
+                response = await client.get(
+                    url,
+                    headers={"User-Agent": f"Django LinkCheck / {VERSION}"},
+                )
+                href_tags = await extract_href(response.text)
+                for href in href_tags:
+                    if href["href"].startswith("/"):
+                        url_from_href = config.hostname + href["href"]
+                        status.text = f"[scrape] {url_from_href}"
+                        await visit_link(url_from_href, cookies, config)
 
-    try:
-        async with httpx.AsyncClient(cookies=cookies, follow_redirects=True) as client:
-            response = await client.get(
-                url,
-                headers={"User-Agent": f"Django LinkCheck / {VERSION}"},
-            )
-            soup = BeautifulSoup(response.text, features="html.parser")
-            href_tags = soup.find_all(href=True)
-            for href in href_tags:
-                if href["href"].startswith("/"):
-                    url_from_href = config.hostname + href["href"]
-                    await visit_link(url_from_href, cookies, config)
-    except Exception as e:
-        debug(e)
+        except Exception as e:
+            debug(e)
 
 
 async def get_hrefs(page):
@@ -92,12 +102,9 @@ async def get_hrefs(page):
 
 
 async def browse_link(url, page, config) -> None:
-
-    msg.info(f"Browsing: {url}")
     BROWSER_URL_CACHE.add(url)
 
     try:
-
         await page.goto(url)
         await page.wait_for_load_state("networkidle")
 
@@ -113,8 +120,8 @@ async def browse_link(url, page, config) -> None:
 
 
 async def link_checker_visit(config):
-    with config_users(config) as auth:
-        username, password = auth
+    for auth in config.users:
+        username, password = auth.split(":")
         cookies = await login(username, password, config)
         await visit_link(config.hostname + config.entry_point, cookies, config)
 
