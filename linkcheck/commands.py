@@ -24,7 +24,7 @@ class CommandLineArgs(BaseModel):
 
 
 class ConfigFile(CommandLineArgs):
-    users: List[str]
+    users: List[dict[str, str]]
 
 
 def load_settings(file_path: str) -> Union[Any, dict[str, Any]]:

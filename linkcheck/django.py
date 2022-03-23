@@ -23,8 +23,8 @@ BROWSER_URL_CACHE = set()
 # Context helper for users defined in TOML file
 @contextmanager
 def config_users(config):
-    for auth in config.users:
-        yield auth.split(":")
+    for user in config.users:
+        yield user.values()
 
 
 # Async login for Django projects
@@ -137,8 +137,8 @@ async def browse_link(url, page, config) -> None:
 
 
 async def link_checker_visit(config):
-    for auth in config.users:
-        username, password = auth.split(":")
+    with config_users(config) as auth:
+        username, password = auth
         cookies = await login(username, password, config)
         await visit_link(config.hostname + config.entry_point, cookies, config)
 
