@@ -32,9 +32,18 @@ password = "admin123"
 ## Usage
 
 ```
-linkcheck visit
+Usage: linkcheck [OPTIONS] COMMAND [ARGS]...
 
-linkcheck browser
+  Django linkcheck command line tool
+
+Options:
+  --config TEXT  select config file
+  --help         Show this message and exit.
+
+Commands:
+  browser  run linkcheck in browser-mode
+  version  show linkcheck version
+  visit    run linkcheck in visit-mode
 ```
 
 ## Documentation
