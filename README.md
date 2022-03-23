@@ -4,7 +4,9 @@ Intro with some text [Read the docs](https://linkcheck.readthedocs.io/en/latest/
 
 Some of it’s stand out features are:
 
--
+- Check all links in Django project from user perspective.
+- Check links with plain http call or with full browser request.
+- 
 
 ## Installation
 
