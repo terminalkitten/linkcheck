@@ -1,14 +1,12 @@
 from contextlib import contextmanager
-from typing import Optional, List
+from typing import List, Optional
 
 import httpx
-from selectolax.parser import HTMLParser
-
 from devtools import debug
 from httpx import Cookies
 from playwright.async_api import async_playwright
+from selectolax.parser import HTMLParser
 from wasabi import Printer
-
 from yaspin import yaspin
 from yaspin.spinners import Spinners
 
@@ -65,16 +63,16 @@ async def login(username, password, config) -> Optional[Cookies]:
 async def extract_href(text) -> List[str]:
 
     links: List[str] = []
-    tags: List[str] = ['a', 'div', 'link', 'span', 'button', 'svg']
+    tags: List[str] = ["a", "div", "link", "span", "button", "svg"]
 
     tree = HTMLParser(text)
 
     for html_tag in tags:
         for tag in tree.tags(html_tag):
             attrs = tag.attributes
-            if 'href' in attrs:
-                if attrs['href']:
-                    links.append(attrs['href'])
+            if "href" in attrs:
+                if attrs["href"]:
+                    links.append(attrs["href"])
     return links
 
 
